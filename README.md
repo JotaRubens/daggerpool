@@ -243,13 +243,15 @@ if status.IsReady() {
 Use `Poller` together with `Prober` to wait until a resource becomes ready.
 ```go
 // prober controls how long a single check may block
-prober := readiness.NewProber(1 * time.Minute)
+prober := readiness.NewProber(time.Minute)
 
 // poller controls how often readiness is checked
 poller := readiness.NewPoller(5*time.Second, prober)
 
-// the provided ctx controls total wait time and cancellation
-status, err := poller.Check(ctx, id, checkFunc)
+// the provided timeoutCtx controls total wait time and cancellation
+timeoutCtx, cancel := context.WithTimeout(ctx, time.Minute)
+defer cancel()
+status, err := poller.Check(timeoutCtx, id, checkFunc)
 if err != nil {
 	return err
 }
